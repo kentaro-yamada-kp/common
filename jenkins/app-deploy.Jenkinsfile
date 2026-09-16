@@ -24,6 +24,7 @@ pipeline {
           withCredentials([file(credentialsId: params.ENV_CREDENTIAL_ID, variable: 'PRODUCTION_ENV')]) {
             sh '''
               set -eu
+              ACTION=$(echo "$ACTION" | tr '[:lower:]' '[:upper:]')
               REMOTE_DIR="/home/ec2-user/$PROJECT"
               if [ "$ACTION" = DEPLOY ]; then
                 scp -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$PRODUCTION_ENV" ec2-user@"$EC2_HOST":/tmp/"$PROJECT".env

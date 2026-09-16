@@ -20,6 +20,7 @@ pipeline {
         sshagent(credentials: ['ec2-key-1']) {
           sh '''
             set -eu
+            ACTION=$(echo "$ACTION" | tr '[:lower:]' '[:upper:]')
             if [ "$ACTION" = "APPLY" ]; then
               scp -o BatchMode=yes -o StrictHostKeyChecking=accept-new jenkins/nginx.conf ec2-user@"$EC2_HOST":/tmp/"$CONFIG_FILE_NAME"
             fi

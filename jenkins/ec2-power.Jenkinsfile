@@ -13,6 +13,7 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'aws-credentials', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
           sh '''
             set -eu
+            ACTION=$(echo "$ACTION" | tr '[:lower:]' '[:upper:]')
             ID=$(aws ec2 describe-instances --region "$AWS_REGION" --filters "Name=tag:Name,Values=$TARGET_NAME" "Name=instance-state-name,Values=pending,running,stopping,stopped" --query 'Reservations[0].Instances[0].InstanceId' --output text)
             test -n "$ID" && test "$ID" != None
             STATE=$(aws ec2 describe-instances --region "$AWS_REGION" --instance-ids "$ID" --query 'Reservations[0].Instances[0].State.Name' --output text)
