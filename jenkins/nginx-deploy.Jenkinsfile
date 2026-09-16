@@ -21,7 +21,7 @@ pipeline {
           sh '''
             set -eu
             if [ "$ACTION" = "APPLY" ]; then
-              scp -o BatchMode=yes -o StrictHostKeyChecking=accept-new common/jenkins/nginx.conf ec2-user@"$EC2_HOST":/tmp/"$CONFIG_FILE_NAME"
+              scp -o BatchMode=yes -o StrictHostKeyChecking=accept-new jenkins/nginx.conf ec2-user@"$EC2_HOST":/tmp/"$CONFIG_FILE_NAME"
             fi
             ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new ec2-user@"$EC2_HOST" \
               "ACTION='$ACTION' CONFIG_FILE_NAME='$CONFIG_FILE_NAME' sh -s" <<'REMOTE'
