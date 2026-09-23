@@ -4,7 +4,7 @@ pipeline {
   parameters {
     choice(name: 'ACTION', choices: ['DEPLOY', 'RESTART', 'STOP'], description: 'アプリ操作')
     choice(name: 'PROJECT', choices: ['crane-rank', 'generic-matching'], description: 'プロジェクト名')
-    choice(name: 'BRANCH', choices: ['main', 'develop'], description: 'デプロイブランチ')
+    gitParameter(name: 'BRANCH', type: 'PT_BRANCH', defaultValue: 'main', description: 'デプロイブランチ', branchFilter: 'origin/(.*)', selectedValue: 'DEFAULT', sortMode: 'NONE')
     string(name: 'EC2_HOST', defaultValue: 'kykp.net', description: '対象EC2')
   }
   stages {
