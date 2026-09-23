@@ -3,7 +3,7 @@ pipeline {
   options { disableConcurrentBuilds() }
   parameters {
     choice(name: 'ACTION', choices: ['APPLY', 'TEST_ONLY', 'RELOAD_ONLY'], description: 'Nginx操作 (APPLY: 設定転送・構文テスト・反映, TEST_ONLY: 構文テストのみ, RELOAD_ONLY: 反映のみ)')
-    string(name: 'EC2_HOST', defaultValue: '', description: '対象EC2ホスト名またはIPアドレス')
+    string(name: 'EC2_HOST', defaultValue: 'kykp.net', description: '対象EC2ホスト名またはIPアドレス')
     string(name: 'CONFIG_FILE_NAME', defaultValue: 'kykp.net.conf', description: '配置先Nginx設定ファイル名 (/etc/nginx/conf.d/ 配下)')
   }
   stages {
