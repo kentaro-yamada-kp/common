@@ -3,29 +3,34 @@ pipeline {
   options { disableConcurrentBuilds() }
   parameters {
     choice(name: 'ACTION', choices: ['DEPLOY', 'RESTART', 'STOP'], description: 'アプリ操作')
-    string(name: 'PROJECT', defaultValue: 'crane-rank', description: 'プロジェクト名 (crane-rank, generic-matching など)')
-    string(name: 'REPOSITORY_URL', defaultValue: '', description: 'GitリポジトリURL')
-    string(name: 'BRANCH', defaultValue: 'main', description: 'デプロイブランチ')
-    string(name: 'EC2_HOST', defaultValue: '', description: '対象EC2')
-    string(name: 'ENV_CREDENTIAL_ID', defaultValue: 'crane-rank-env-production', description: '.env.productionのSecret file ID')
-    string(name: 'APP_PORT', defaultValue: '3001', description: 'アプリポート (crane-rank: 3001, generic-matching: 3000)')
-    string(name: 'HEALTH_CHECK_PATH', defaultValue: '/api/health', description: 'ヘルスチェックパス')
-    string(name: 'COMPOSE_FILE', defaultValue: 'docker-compose.production.yml', description: '使用するComposeファイル名')
+    choice(name: 'PROJECT', choices: ['crane-rank', 'generic-matching'], description: 'プロジェクト名')
+    gitParameter(name: 'BRANCH', type: 'PT_BRANCH', defaultValue: 'main', description: 'デプロイブランチ', branchFilter: 'origin/(.*)', selectedValue: 'DEFAULT', sortMode: 'NONE')
+    string(name: 'EC2_HOST', defaultValue: 'kykp.net', description: '対象EC2')
   }
   stages {
     stage('Validate') { steps { script {
       if (!(params.PROJECT ==~ /[A-Za-z0-9._-]+/) || !(params.BRANCH ==~ /[A-Za-z0-9._\/-]+/) || !(params.EC2_HOST ==~ /[A-Za-z0-9.-]+/)) error('パラメータが不正です')
-      if (!(params.APP_PORT ==~ /[0-9]+/)) error('APP_PORTパラメータが不正です')
-      if (!(params.REPOSITORY_URL ==~ /(https:\/\/|git@)[A-Za-z0-9._:@\/-]+/)) error('REPOSITORY_URLが不正です')
     } } }
     stage('Deploy or operate') {
       steps {
         sshagent(credentials: ['ec2-key-1']) {
-          withCredentials([file(credentialsId: params.ENV_CREDENTIAL_ID, variable: 'PRODUCTION_ENV')]) {
+          script {
+            def portMap = ['crane-rank': '3001', 'generic-matching': '3000']
+            env.APP_PORT_VAL = portMap[params.PROJECT] ?: '3000'
+            env.REPOSITORY_URL_VAL = "https://github.com/kentaro-yamada-kp/${params.PROJECT}.git"
+            env.ENV_CREDENTIAL_ID_VAL = "${params.PROJECT}-env-production"
+            env.HEALTH_CHECK_PATH_VAL = '/api/health'
+            env.COMPOSE_FILE_VAL = 'docker-compose.production.yml'
+          }
+          withCredentials([file(credentialsId: env.ENV_CREDENTIAL_ID_VAL, variable: 'PRODUCTION_ENV')]) {
             sh '''
               set -eu
               ACTION=$(echo "$ACTION" | tr '[:lower:]' '[:upper:]')
               REMOTE_DIR="/home/ec2-user/$PROJECT"
+              REPOSITORY_URL="$REPOSITORY_URL_VAL"
+              APP_PORT="$APP_PORT_VAL"
+              HEALTH_CHECK_PATH="$HEALTH_CHECK_PATH_VAL"
+              COMPOSE_FILE="$COMPOSE_FILE_VAL"
               if [ "$ACTION" = DEPLOY ]; then
                 scp -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$PRODUCTION_ENV" ec2-user@"$EC2_HOST":/tmp/"$PROJECT".env
               fi
