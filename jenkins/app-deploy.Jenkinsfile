@@ -48,7 +48,6 @@ pipeline {
                 rm -f /tmp/"$PROJECT".env
                 if [ ! -f "$TARGET_COMPOSE" ] && [ -f docker-compose.yml ]; then TARGET_COMPOSE="docker-compose.yml"; fi
                 docker compose -f "$TARGET_COMPOSE" up -d --build --remove-orphans
-                if [ -f jenkins/nginx.conf ]; then sudo install -m 0644 jenkins/nginx.conf /etc/nginx/conf.d/"$PROJECT".conf; sudo nginx -t; sudo systemctl reload nginx; fi
               elif [ "$ACTION" = RESTART ]; then
                 cd "$REMOTE_DIR"
                 if [ ! -f "$TARGET_COMPOSE" ] && [ -f docker-compose.yml ]; then TARGET_COMPOSE="docker-compose.yml"; fi
