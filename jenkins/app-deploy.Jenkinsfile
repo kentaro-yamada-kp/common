@@ -19,7 +19,7 @@ pipeline {
             env.APP_PORT_VAL = portMap[params.PROJECT] ?: '3000'
             env.REPOSITORY_URL_VAL = "https://github.com/kentaro-yamada-kp/${params.PROJECT}.git"
             env.ENV_CREDENTIAL_ID_VAL = "${params.PROJECT}-env-production"
-            env.HEALTH_CHECK_PATH_VAL = '/api/health'
+            env.HEALTH_CHECK_PATH_VAL = params.PROJECT == 'generic-matching' ? '/generic-matching/api/health' : '/api/health'
             env.COMPOSE_FILE_VAL = 'docker-compose.production.yml'
           }
           withCredentials([file(credentialsId: env.ENV_CREDENTIAL_ID_VAL, variable: 'PRODUCTION_ENV')]) {
